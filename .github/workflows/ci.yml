@@ -27,7 +27,9 @@ jobs:
       - uses: actions/checkout@v4
       - run: docker build -t biblioteca-ci .
       - run: docker run -d --name biblioteca-ci -p 8000:8000 biblioteca-ci
-      - run: curl -fsS --retry 10 --retry-connrefused --retry-delay 2 http://localhost:8000/health
+            - run: curl -fsS --retry 10 --retry-all-errors --retry-delay 2 http://localhost:8000/health
+      - if: failure()
+        run: docker logs biblioteca-ci
 
   publicar:
     needs: imagem
