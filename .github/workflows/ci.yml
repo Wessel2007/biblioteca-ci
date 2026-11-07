@@ -28,3 +28,18 @@ jobs:
       - run: docker build -t biblioteca-ci .
       - run: docker run -d --name biblioteca-ci -p 8000:8000 biblioteca-ci
       - run: curl -fsS --retry 10 --retry-connrefused --retry-delay 2 http://localhost:8000/health
+
+  publicar:
+    needs: imagem
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGEM: ghcr.io/wessel2007/biblioteca-ci
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - run: docker build -t "$IMAGEM:latest" -t "$IMAGEM:${GITHUB_SHA}" .
+      - run: docker push --all-tags "$IMAGEM"
